@@ -11,6 +11,15 @@ export type OnboardingField =
 
 export const TOTAL_STEPS = 8;
 
+export type SelectedGoal = {
+  id: string;
+  goal_type: "academic" | "competitive" | "side_skill" | "other";
+  goal_name: string;
+  exam_date: string | null;
+  exam_year: number | null;
+  priority: number | null;
+};
+
 type OnboardingState = {
   currentStep: number;
   userType: string;
@@ -20,6 +29,10 @@ type OnboardingState = {
   guardianMode: boolean;
   parentContact: string;
   midPrepSelected: boolean | null;
+  selectedGoals: SelectedGoal[];
+  setSelectedGoals: (goals: SelectedGoal[]) => void;
+  step4GoalIndex: number;
+  setStep4GoalIndex: (i: number) => void;
   setField: <K extends OnboardingField>(
     key: K,
     value: OnboardingState[K],
@@ -39,6 +52,10 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   guardianMode: false,
   parentContact: "",
   midPrepSelected: null,
+  selectedGoals: [],
+  setSelectedGoals: (goals) => set({ selectedGoals: goals }),
+  step4GoalIndex: 0,
+  setStep4GoalIndex: (i) => set({ step4GoalIndex: i }),
   setField: (key, value) => set({ [key]: value } as never),
   setStep: (step) => set({ currentStep: step }),
   nextStep: () =>
