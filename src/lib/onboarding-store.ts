@@ -31,6 +31,8 @@ type OnboardingState = {
   midPrepSelected: boolean | null;
   selectedGoals: SelectedGoal[];
   setSelectedGoals: (goals: SelectedGoal[]) => void;
+  step4GoalIndex: number;
+  setStep4GoalIndex: (i: number) => void;
   setField: <K extends OnboardingField>(
     key: K,
     value: OnboardingState[K],
@@ -52,6 +54,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   midPrepSelected: null,
   selectedGoals: [],
   setSelectedGoals: (goals) => set({ selectedGoals: goals }),
+  step4GoalIndex: 0,
+  setStep4GoalIndex: (i) => set({ step4GoalIndex: i }),
   setField: (key, value) => set({ [key]: value } as never),
   setStep: (step) => set({ currentStep: step }),
   nextStep: () =>
