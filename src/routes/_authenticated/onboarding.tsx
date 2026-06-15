@@ -6,7 +6,7 @@ import { Step1WhoAreYou } from "@/components/onboarding/Step1WhoAreYou";
 import { Step2Journey } from "@/components/onboarding/Step2Journey";
 import { Step3Goals } from "@/components/onboarding/Step3Goals";
 import { Step4Timeline } from "@/components/onboarding/Step4Timeline";
-import { useOnboardingStore } from "@/lib/onboarding-store";
+import { useOnboardingStore, type SelectedGoal } from "@/lib/onboarding-store";
 import { useAuthStore } from "@/lib/auth-store";
 import { supabase } from "@/integrations/supabase/client";
 
