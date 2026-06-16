@@ -6,6 +6,7 @@ import { Step1WhoAreYou } from "@/components/onboarding/Step1WhoAreYou";
 import { Step2Journey } from "@/components/onboarding/Step2Journey";
 import { Step3Goals } from "@/components/onboarding/Step3Goals";
 import { Step4Timeline } from "@/components/onboarding/Step4Timeline";
+import { Step5Syllabus } from "@/components/onboarding/Step5Syllabus";
 import { useOnboardingStore, type SelectedGoal } from "@/lib/onboarding-store";
 import { useAuthStore } from "@/lib/auth-store";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +107,8 @@ function OnboardingPage() {
             {currentStep === 2 && <Step2Journey />}
             {currentStep === 3 && <Step3Goals />}
             {currentStep === 4 && <Step4Timeline />}
-            {currentStep > 4 && (
+            {currentStep === 5 && <Step5Syllabus />}
+            {currentStep > 5 && (
               <div className="flex-1 flex items-center justify-center px-4">
                 <p className="font-serif italic text-[#B46A72] text-center">
                   Step {currentStep} coming soon.
