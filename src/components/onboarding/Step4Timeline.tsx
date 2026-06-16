@@ -172,12 +172,31 @@ export function Step4Timeline() {
     );
     setSelectedGoals(updated);
 
+    // Persist the just-edited goal immediately via UPSERT so an
+    // edit-then-back-out cannot leave stale timeline data behind.
+    if (user) {
+      const currentGoal = updated[step4GoalIndex];
+      await supabase.from("goals").upsert(
+        {
+          id: currentGoal.id,
+          user_id: user.id,
+          goal_type: currentGoal.goal_type,
+          goal_name: currentGoal.goal_name,
+          exam_date: currentGoal.exam_date,
+          exam_year: currentGoal.exam_year,
+          priority: currentGoal.priority,
+          status: "active",
+        },
+        { onConflict: "id" },
+      );
+    }
+
     if (!isLast) {
       setStep4GoalIndex(step4GoalIndex + 1);
       return;
     }
 
-    // batch insert
+    // batch upsert (covers any side_skill rows defaulted in the effect above)
     if (!user) return;
     setSaving(true);
     setError(null);
@@ -191,7 +210,9 @@ export function Step4Timeline() {
       priority: g.priority,
       status: "active",
     }));
-    const { error: insErr } = await supabase.from("goals").insert(rows);
+    const { error: insErr } = await supabase
+      .from("goals")
+      .upsert(rows, { onConflict: "id" });
     setSaving(false);
     if (insErr) {
       setError(insErr.message);
