@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SelectableCard } from "./SelectableCard";
 import { useOnboardingStore } from "@/lib/onboarding-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth-store";
+import { clearGoalsAndDownstream } from "@/lib/onboarding-cascade";
 
 const USER_TYPES = [
   { id: "school", icon: "🎒", label: "School Student" },
@@ -24,10 +25,13 @@ export function Step1WhoAreYou() {
     parentContact,
     setField,
     nextStep,
+    resetGoalsBranch,
   } = useOnboardingStore();
   const user = useAuthStore((s) => s.user);
   const [saving, setSaving] = useState(false);
   const [showGuardianToggle, setShowGuardianToggle] = useState(false);
+  // Snapshot the userType at the moment this step mounts so we can detect edits.
+  const initialUserTypeRef = useRef<string>(userType);
 
   // Lock guardian mode on for grades 1-4
   useEffect(() => {
@@ -77,9 +81,21 @@ export function Step1WhoAreYou() {
       parent_contact:
         userType === "school" && guardianMode ? parentContact : null,
     };
-    const { error } = await supabase.from("profiles").upsert(payload);
+    const initial = initialUserTypeRef.current;
+    const userTypeChanged = !!initial && initial !== userType;
+    if (userTypeChanged) {
+      // Cascade: nuke goals + subjects + syllabus and reset goals-branch state.
+      await clearGoalsAndDownstream(user.id);
+      resetGoalsBranch();
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .upsert(payload, { onConflict: "id" });
     setSaving(false);
-    if (!error) nextStep();
+    if (!error) {
+      initialUserTypeRef.current = userType;
+      nextStep();
+    }
   };
 
   return (

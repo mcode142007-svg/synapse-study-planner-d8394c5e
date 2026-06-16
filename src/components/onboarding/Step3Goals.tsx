@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useOnboardingStore, type SelectedGoal } from "@/lib/onboarding-store";
+import { useAuthStore } from "@/lib/auth-store";
+import { clearGoalsAndDownstream } from "@/lib/onboarding-cascade";
 
 type Chip = { label: string; type: SelectedGoal["goal_type"] };
 
@@ -56,6 +58,15 @@ function SubSectionLabel({ children }: { children: React.ReactNode }) {
 export function Step3Goals() {
   const { userType, grade, selectedGoals, setSelectedGoals, nextStep } =
     useOnboardingStore();
+  const user = useAuthStore((s) => s.user);
+  const [saving, setSaving] = useState(false);
+  // Snapshot the goal signature at mount so we can detect edits on Continue.
+  const initialSigRef = useRef<string>(
+    selectedGoals
+      .map((g) => `${g.goal_type}:${g.goal_name}`)
+      .sort()
+      .join("|"),
+  );
 
   const [otherExamName, setOtherExamName] = useState("");
   const [languageName, setLanguageName] = useState("");
@@ -249,6 +260,27 @@ export function Step3Goals() {
     otherSkillName,
   ]);
 
+  const onContinue = async () => {
+    if (!canContinue || saving) return;
+    const currentSig = selectedGoals
+      .map((g) => `${g.goal_type}:${g.goal_name}`)
+      .sort()
+      .join("|");
+    const changed = !!initialSigRef.current && currentSig !== initialSigRef.current;
+    if (changed && user) {
+      setSaving(true);
+      // Wipe stale goals + dependent subjects/syllabus so Step 4 re-inserts fresh.
+      await clearGoalsAndDownstream(user.id);
+      // Regenerate ids so the upcoming upsert in Step 4 creates fresh rows.
+      setSelectedGoals(
+        selectedGoals.map((g) => ({ ...g, id: crypto.randomUUID() })),
+      );
+      setSaving(false);
+    }
+    initialSigRef.current = currentSig;
+    nextStep();
+  };
+
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32">
@@ -373,13 +405,13 @@ export function Step3Goals() {
       </div>
 
       <button
-        disabled={!canContinue}
-        onClick={() => canContinue && nextStep()}
+        disabled={!canContinue || saving}
+        onClick={onContinue}
         className={`fixed bottom-6 left-4 right-4 z-20 bg-[#B46A72] text-[#FFF7E6] rounded-xl py-3 font-serif font-semibold text-lg shadow-sm transition ${
-          !canContinue ? "opacity-50" : ""
+          !canContinue || saving ? "opacity-50" : ""
         }`}
       >
-        Continue
+        {saving ? "Updating…" : "Continue"}
       </button>
     </div>
   );

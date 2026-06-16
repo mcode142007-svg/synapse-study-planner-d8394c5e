@@ -41,6 +41,7 @@ type OnboardingState = {
   nextStep: () => void;
   prevStep: () => void;
   hydrate: (partial: Partial<OnboardingState>) => void;
+  resetGoalsBranch: () => void;
 };
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
@@ -62,4 +63,10 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     set((s) => ({ currentStep: Math.min(TOTAL_STEPS, s.currentStep + 1) })),
   prevStep: () => set((s) => ({ currentStep: Math.max(1, s.currentStep - 1) })),
   hydrate: (partial) => set(partial),
+  resetGoalsBranch: () =>
+    set({
+      selectedGoals: [],
+      midPrepSelected: null,
+      step4GoalIndex: 0,
+    }),
 }));
