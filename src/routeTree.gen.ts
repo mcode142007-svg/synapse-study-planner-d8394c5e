@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGeminiRouteImport } from './routes/api/gemini'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/_app'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/_app/settings'
@@ -37,6 +38,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeminiRoute = ApiGeminiRouteImport.update({
+  id: '/api/gemini',
+  path: '/api/gemini',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/api/gemini': typeof ApiGeminiRoute
   '/dashboard': typeof AuthenticatedAppDashboardRoute
   '/goals': typeof AuthenticatedAppGoalsRoute
   '/progress': typeof AuthenticatedAppProgressRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/api/gemini': typeof ApiGeminiRoute
   '/dashboard': typeof AuthenticatedAppDashboardRoute
   '/goals': typeof AuthenticatedAppGoalsRoute
   '/progress': typeof AuthenticatedAppProgressRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/_app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/api/gemini': typeof ApiGeminiRoute
   '/_authenticated/_app/dashboard': typeof AuthenticatedAppDashboardRoute
   '/_authenticated/_app/goals': typeof AuthenticatedAppGoalsRoute
   '/_authenticated/_app/progress': typeof AuthenticatedAppProgressRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/onboarding'
+    | '/api/gemini'
     | '/dashboard'
     | '/goals'
     | '/progress'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/onboarding'
+    | '/api/gemini'
     | '/dashboard'
     | '/goals'
     | '/progress'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/_app'
     | '/_authenticated/onboarding'
+    | '/api/gemini'
     | '/_authenticated/_app/dashboard'
     | '/_authenticated/_app/goals'
     | '/_authenticated/_app/progress'
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiGeminiRoute: typeof ApiGeminiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gemini': {
+      id: '/api/gemini'
+      path: '/api/gemini'
+      fullPath: '/api/gemini'
+      preLoaderRoute: typeof ApiGeminiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/onboarding': {
@@ -258,6 +278,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiGeminiRoute: ApiGeminiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
