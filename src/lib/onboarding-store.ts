@@ -20,6 +20,17 @@ export type SelectedGoal = {
   priority: number | null;
 };
 
+export type UploadedSyllabusSubject = {
+  subject: string;
+  chapters: Array<{
+    chapter_number: number;
+    chapter_name: string;
+    topics: string[];
+  }>;
+};
+
+export type SyllabusSource = "preloaded" | "uploaded" | "generated" | null;
+
 type OnboardingState = {
   currentStep: number;
   userType: string;
@@ -33,6 +44,12 @@ type OnboardingState = {
   setSelectedGoals: (goals: SelectedGoal[]) => void;
   step4GoalIndex: number;
   setStep4GoalIndex: (i: number) => void;
+  syllabusSource: SyllabusSource;
+  uploadedSyllabusData: UploadedSyllabusSubject[] | null;
+  syllabusConfirmed: boolean;
+  setSyllabusSource: (s: SyllabusSource) => void;
+  setUploadedSyllabusData: (d: UploadedSyllabusSubject[] | null) => void;
+  setSyllabusConfirmed: (v: boolean) => void;
   setField: <K extends OnboardingField>(
     key: K,
     value: OnboardingState[K],
@@ -57,6 +74,12 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setSelectedGoals: (goals) => set({ selectedGoals: goals }),
   step4GoalIndex: 0,
   setStep4GoalIndex: (i) => set({ step4GoalIndex: i }),
+  syllabusSource: null,
+  uploadedSyllabusData: null,
+  syllabusConfirmed: false,
+  setSyllabusSource: (s) => set({ syllabusSource: s }),
+  setUploadedSyllabusData: (d) => set({ uploadedSyllabusData: d }),
+  setSyllabusConfirmed: (v) => set({ syllabusConfirmed: v }),
   setField: (key, value) => set({ [key]: value } as never),
   setStep: (step) => set({ currentStep: step }),
   nextStep: () =>
@@ -68,5 +91,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       selectedGoals: [],
       midPrepSelected: null,
       step4GoalIndex: 0,
+      syllabusSource: null,
+      uploadedSyllabusData: null,
+      syllabusConfirmed: false,
     }),
 }));
