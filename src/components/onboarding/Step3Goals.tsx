@@ -72,6 +72,7 @@ export function Step3Goals() {
   const [languageName, setLanguageName] = useState("");
   const [otherSkillName, setOtherSkillName] = useState("");
   const [codingSubs, setCodingSubs] = useState<string[]>([]);
+  const [codingOther, setCodingOther] = useState("");
 
   const selectedNames = useMemo(
     () => new Set(selectedGoals.map((g) => g.goal_name.split(" — ")[0])),
@@ -221,7 +222,20 @@ export function Step3Goals() {
       ? codingSubs.filter((s) => s !== sub)
       : [...codingSubs, sub];
     setCodingSubs(next);
-    const display = next.length ? `Coding — ${next.join(", ")}` : "Coding";
+    const parts = next.map((s) =>
+      s === "Other" && codingOther.trim() ? `Other (${codingOther.trim()})` : s,
+    );
+    const display = parts.length ? `Coding — ${parts.join(", ")}` : "Coding";
+    upsertGoal({ label: "Coding", type: "side_skill" }, display);
+  };
+
+  const updateCodingOther = (v: string) => {
+    setCodingOther(v);
+    if (!codingSubs.includes("Other")) return;
+    const parts = codingSubs.map((s) =>
+      s === "Other" && v.trim() ? `Other (${v.trim()})` : s,
+    );
+    const display = parts.length ? `Coding — ${parts.join(", ")}` : "Coding";
     upsertGoal({ label: "Coding", type: "side_skill" }, display);
   };
 
@@ -245,6 +259,8 @@ export function Step3Goals() {
     if (selectedGoals.length === 0) return false;
     if (otherSelected && !otherExamName.trim()) return false;
     if (codingSelected && codingSubs.length === 0) return false;
+    if (codingSelected && codingSubs.includes("Other") && !codingOther.trim())
+      return false;
     if (langSelected && !languageName.trim()) return false;
     if (otherSkillSelected && !otherSkillName.trim()) return false;
     return true;
@@ -254,6 +270,7 @@ export function Step3Goals() {
     otherExamName,
     codingSelected,
     codingSubs,
+    codingOther,
     langSelected,
     languageName,
     otherSkillSelected,
@@ -353,11 +370,25 @@ export function Step3Goals() {
 
         <div
           className="overflow-hidden transition-all duration-300"
-          style={{ maxHeight: codingSelected ? 120 : 0 }}
+          style={{ maxHeight: codingSelected ? 400 : 0 }}
         >
           <SubSectionLabel>Which area of coding?</SubSectionLabel>
           <div className="flex flex-wrap gap-2 mt-2">
-            {["Python", "Web Development", "DSA"].map((s) => {
+            {[
+              "Python",
+              "Web Development",
+              "DSA",
+              "C++",
+              "Java",
+              "Machine Learning",
+              "Android Development",
+              "iOS Development",
+              "Game Development",
+              "Cybersecurity",
+              "Cloud Computing",
+              "Blockchain",
+              "Other",
+            ].map((s) => {
               const sel = codingSubs.includes(s);
               return (
                 <button
@@ -375,6 +406,15 @@ export function Step3Goals() {
               );
             })}
           </div>
+          {codingSubs.includes("Other") && (
+            <input
+              type="text"
+              value={codingOther}
+              onChange={(e) => updateCodingOther(e.target.value)}
+              placeholder="Specify your coding interest"
+              className="mt-3 rounded-xl py-3 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full font-serif"
+            />
+          )}
         </div>
 
         <div
