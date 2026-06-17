@@ -7,7 +7,10 @@ export type OnboardingField =
   | "degree"
   | "guardianMode"
   | "parentContact"
-  | "midPrepSelected";
+  | "midPrepSelected"
+  | "hoursPerDay"
+  | "peakHours"
+  | "languagePreference";
 
 export const TOTAL_STEPS = 8;
 
@@ -40,6 +43,9 @@ type OnboardingState = {
   guardianMode: boolean;
   parentContact: string;
   midPrepSelected: boolean | null;
+  hoursPerDay: number;
+  peakHours: string[];
+  languagePreference: string;
   selectedGoals: SelectedGoal[];
   setSelectedGoals: (goals: SelectedGoal[]) => void;
   step4GoalIndex: number;
@@ -50,10 +56,7 @@ type OnboardingState = {
   setSyllabusSource: (s: SyllabusSource) => void;
   setUploadedSyllabusData: (d: UploadedSyllabusSubject[] | null) => void;
   setSyllabusConfirmed: (v: boolean) => void;
-  setField: <K extends OnboardingField>(
-    key: K,
-    value: OnboardingState[K],
-  ) => void;
+  setField: <K extends OnboardingField>(key: K, value: OnboardingState[K]) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -70,6 +73,9 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   guardianMode: false,
   parentContact: "",
   midPrepSelected: null,
+  hoursPerDay: 3,
+  peakHours: [],
+  languagePreference: "english",
   selectedGoals: [],
   setSelectedGoals: (goals) => set({ selectedGoals: goals }),
   step4GoalIndex: 0,
@@ -82,8 +88,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setSyllabusConfirmed: (v) => set({ syllabusConfirmed: v }),
   setField: (key, value) => set({ [key]: value } as never),
   setStep: (step) => set({ currentStep: step }),
-  nextStep: () =>
-    set((s) => ({ currentStep: Math.min(TOTAL_STEPS, s.currentStep + 1) })),
+  nextStep: () => set((s) => ({ currentStep: Math.min(TOTAL_STEPS, s.currentStep + 1) })),
   prevStep: () => set((s) => ({ currentStep: Math.max(1, s.currentStep - 1) })),
   hydrate: (partial) => set(partial),
   resetGoalsBranch: () =>

@@ -3,8 +3,8 @@ import { useOnboardingStore, type UploadedSyllabusSubject } from "@/lib/onboardi
 import { useAuthStore } from "@/lib/auth-store";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreloadedSyllabus, type PreloadedSubject } from "@/data/syllabi";
-import { callGeminiJSON } from "@/lib/gemini-client";
 import { extractPdfText } from "@/lib/pdf-extract";
+import { parseSyllabusFiles } from "@/lib/api/onboarding.functions";
 
 type Weightage = "high" | "medium" | "low";
 
@@ -21,6 +21,58 @@ type SyllabusToInsert = {
   source: "preloaded" | "uploaded" | "generated";
 };
 
+type SyllabusFilePayload = {
+  name: string;
+  mimeType: string;
+  text?: string;
+  base64?: string;
+};
+
+function isAcceptedSyllabusFile(file: File) {
+  const name = file.name.toLowerCase();
+  return (
+    name.endsWith(".pdf") ||
+    name.endsWith(".txt") ||
+    file.type === "image/png" ||
+    file.type === "image/jpeg" ||
+    file.type === "image/jpg"
+  );
+}
+
+function fileToBase64(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result ?? "");
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fileToPayload(file: File): Promise<SyllabusFilePayload> {
+  if (file.type.startsWith("image/")) {
+    return {
+      name: file.name,
+      mimeType: file.type === "image/jpg" ? "image/jpeg" : file.type,
+      base64: await fileToBase64(file),
+    };
+  }
+  if (file.name.toLowerCase().endsWith(".pdf")) {
+    return {
+      name: file.name,
+      mimeType: file.type || "application/pdf",
+      text: await extractPdfText(file),
+    };
+  }
+  return {
+    name: file.name,
+    mimeType: file.type || "text/plain",
+    text: await file.text(),
+  };
+}
+
 async function syllabusExists(userId: string, goalId: string) {
   const { data, error } = await supabase
     .from("syllabus")
@@ -32,11 +84,7 @@ async function syllabusExists(userId: string, goalId: string) {
   return !!(data && data.length > 0);
 }
 
-async function insertSyllabus(
-  userId: string,
-  goalId: string,
-  data: SyllabusToInsert,
-) {
+async function insertSyllabus(userId: string, goalId: string, data: SyllabusToInsert) {
   for (const subj of data.subjects) {
     const subjectId = crypto.randomUUID();
     const { error: sErr } = await supabase.from("subjects").upsert(
@@ -108,9 +156,7 @@ export function Step5Syllabus() {
   );
 
   const [idx, setIdx] = useState(0);
-  const [status, setStatus] = useState<"loading" | "needs_upload" | "success" | "error">(
-    "loading",
-  );
+  const [status, setStatus] = useState<"loading" | "needs_upload" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const processedRef = useRef<Set<number>>(new Set());
 
@@ -134,11 +180,7 @@ export function Step5Syllabus() {
         }
         const preloaded = getPreloadedSyllabus(currentGoal.goal_name);
         if (preloaded) {
-          await insertSyllabus(
-            user.id,
-            currentGoal.id,
-            preloadedToInsert(preloaded),
-          );
+          await insertSyllabus(user.id, currentGoal.id, preloadedToInsert(preloaded));
           if (cancelled) return;
           processedRef.current.add(idx);
           advance();
@@ -156,7 +198,6 @@ export function Step5Syllabus() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx, user, currentGoal]);
 
   // All goals done.
@@ -212,10 +253,7 @@ export function Step5Syllabus() {
           <>
             <h1 className="mt-2 font-serif font-semibold text-2xl text-[#2D3A47]">
               Loading syllabus for{" "}
-              <span className="italic text-[#B46A72]">
-                {currentGoal.goal_name}
-              </span>
-              …
+              <span className="italic text-[#B46A72]">{currentGoal.goal_name}</span>…
             </h1>
             <p className="mt-1 font-serif italic text-[#A9B7C6]">
               Just a moment while we prepare your chapters
@@ -276,36 +314,38 @@ function UploadForGoal({
   const [mode, setMode] = useState<"choose" | "upload" | "confirm" | "generating" | "weighting">(
     "choose",
   );
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [parsed, setParsed] = useState<UploadedSyllabusSubject[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const preventDropNavigation = (event: DragEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("dragover", preventDropNavigation);
+    window.addEventListener("drop", preventDropNavigation);
+    return () => {
+      window.removeEventListener("dragover", preventDropNavigation);
+      window.removeEventListener("drop", preventDropNavigation);
+    };
+  }, []);
 
   const extractFromFile = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
     setBusy(true);
     setErr(null);
     try {
-      let text = "";
-      if (file.name.toLowerCase().endsWith(".pdf")) {
-        try {
-          text = await extractPdfText(file);
-        } catch {
-          throw new Error("Couldn't read this PDF. Try a text file or use AI generation.");
-        }
-      } else {
-        text = await file.text();
-      }
-      const prompt = `Extract and structure this syllabus into subjects, chapters, and topics. Return ONLY valid JSON, no markdown, no explanation, no backticks: [{"subject": "Physics", "chapters": [{"chapter_number": 1, "chapter_name": "Chapter Name", "topics": ["topic1", "topic2"]}]}]. Syllabus text: ${text.slice(0, 30000)}`;
-      const data = await callGeminiJSON<UploadedSyllabusSubject[]>(prompt);
+      const payload = await Promise.all(files.map(fileToPayload));
+      const data = await parseSyllabusFiles({
+        data: { goalName, files: payload },
+      });
       setParsed(data);
       setMode("confirm");
     } catch (e) {
-      setErr(
-        (e as Error).message ||
-          "Couldn't process your file. Try again or use AI generation.",
-      );
+      setErr((e as Error).message || "Couldn't process your file. Try again or use AI generation.");
     } finally {
       setBusy(false);
     }
@@ -317,19 +357,6 @@ function UploadForGoal({
     setBusy(true);
     setErr(null);
     try {
-      const flatNames = parsed.flatMap((s) => s.chapters.map((c) => c.chapter_name));
-      const wPrompt = `For the exam ${goalName}, assign high, medium, or low weightage to each chapter based on how frequently it is tested in past exam papers. Return ONLY valid JSON, no markdown: ${JSON.stringify(
-        flatNames.map((n) => ({ chapter_name: n })),
-      )}`;
-      let weights: Array<{ chapter_name: string; weightage: Weightage }> = [];
-      try {
-        weights = await callGeminiJSON<Array<{ chapter_name: string; weightage: Weightage }>>(
-          wPrompt,
-        );
-      } catch {
-        weights = flatNames.map((n) => ({ chapter_name: n, weightage: "medium" as Weightage }));
-      }
-      const wMap = new Map(weights.map((w) => [w.chapter_name, w.weightage]));
       const data: SyllabusToInsert = {
         source: "uploaded",
         subjects: parsed.map((s) => ({
@@ -338,7 +365,7 @@ function UploadForGoal({
             chapter_number: c.chapter_number,
             chapter_name: c.chapter_name,
             topics: c.topics,
-            weightage: (wMap.get(c.chapter_name) ?? "medium") as Weightage,
+            weightage: "medium",
           })),
         })),
       };
@@ -356,18 +383,7 @@ function UploadForGoal({
     setBusy(true);
     setErr(null);
     try {
-      const prompt = `Generate a complete structured syllabus for the ${goalName} exam. Return ONLY valid JSON, no markdown, no backticks, no explanation: [{"subject": "...", "chapters": [{"chapter_number": 1, "chapter_name": "...", "topics": ["topic1", "topic2"], "weightage": "high"}]}]`;
-      const data = await callGeminiJSON<
-        Array<{
-          subject: string;
-          chapters: Array<{
-            chapter_number: number;
-            chapter_name: string;
-            topics: string[];
-            weightage: Weightage;
-          }>;
-        }>
-      >(prompt);
+      const data = await parseSyllabusFiles({ data: { goalName, files: [] } });
       const insert: SyllabusToInsert = {
         source: "generated",
         subjects: data.map((s) => ({
@@ -376,7 +392,7 @@ function UploadForGoal({
             chapter_number: c.chapter_number ?? i + 1,
             chapter_name: c.chapter_name,
             topics: c.topics ?? [],
-            weightage: (c.weightage ?? "medium") as Weightage,
+            weightage: "medium",
           })),
         })),
       };
@@ -387,6 +403,11 @@ function UploadForGoal({
     } finally {
       setBusy(false);
     }
+  };
+
+  const addFiles = (list: FileList | File[]) => {
+    const next = Array.from(list).filter(isAcceptedSyllabusFile);
+    setFiles((current) => [...current, ...next]);
   };
 
   return (
@@ -402,26 +423,68 @@ function UploadForGoal({
         <div className="mt-6 space-y-4">
           {/* Option A */}
           <div className="rounded-2xl border-2 border-dashed border-[#F7C8D3] bg-white/60 p-6 text-center">
-            <p className="font-serif text-[#2D3A47]">Upload PDF or text file</p>
+            <p className="font-serif text-[#2D3A47]">Upload PDF, text, or images</p>
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addFiles(e.dataTransfer.files);
+              }}
+              className="mt-3 flex min-h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-[#F7C8D3] bg-white/70 px-4 py-6 text-center active:scale-[0.99]"
+            >
+              <span className="font-serif text-sm text-[#2D3A47]">
+                Tap to choose files or drop them here
+              </span>
+              <span className="mt-1 font-serif text-xs italic text-[#A9B7C6]">
+                PDF, TXT, PNG, JPG, JPEG
+              </span>
+            </button>
             <input
+              ref={inputRef}
               type="file"
-              accept=".pdf,.txt"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="mt-3 block w-full text-sm font-serif"
+              multiple
+              accept=".pdf,.txt,image/png,image/jpeg,image/jpg"
+              onChange={(e) => {
+                if (e.target.files) addFiles(e.target.files);
+                e.currentTarget.value = "";
+              }}
+              className="sr-only"
             />
-            {file && (
-              <p className="mt-2 text-sm font-serif text-[#A8B58A]">
-                ✓ {file.name}
-              </p>
+            {files.length > 0 && (
+              <div className="mt-3 space-y-1 text-left">
+                {files.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between gap-3 rounded-lg bg-white/70 px-3 py-2"
+                  >
+                    <p className="min-w-0 truncate text-sm font-serif text-[#A8B58A]">
+                      {file.name}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                      className="shrink-0 text-xs font-serif text-[#B46A72]"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
             <button
-              disabled={!file || busy}
+              disabled={files.length === 0 || busy}
               onClick={extractFromFile}
               className={`mt-4 w-full rounded-xl bg-[#B46A72] text-[#FFF7E6] py-2 font-serif ${
-                !file || busy ? "opacity-50" : ""
+                files.length === 0 || busy ? "opacity-50" : ""
               }`}
             >
-              {busy ? "Extracting…" : "Extract Syllabus"}
+              {busy ? "Extracting..." : "Extract Syllabus"}
             </button>
           </div>
 
@@ -441,9 +504,7 @@ function UploadForGoal({
       {(mode === "generating" || mode === "weighting") && (
         <div className="mt-6 space-y-3">
           <p className="font-serif italic text-[#A9B7C6]">
-            {mode === "generating"
-              ? "Generating syllabus…"
-              : "Assigning chapter weightage…"}
+            {mode === "generating" ? "Generating syllabus…" : "Assigning chapter weightage…"}
           </p>
           <SkeletonCard />
           <SkeletonCard />
@@ -459,9 +520,7 @@ function UploadForGoal({
           <div className="mt-3 max-h-96 overflow-y-auto rounded-2xl border border-[#F7C8D3] bg-white/70 p-4 space-y-4">
             {parsed.map((s, si) => (
               <div key={si}>
-                <p className="font-serif font-semibold text-[#2D3A47]">
-                  {s.subject}
-                </p>
+                <p className="font-serif font-semibold text-[#2D3A47]">{s.subject}</p>
                 <ul className="mt-1 space-y-2">
                   {s.chapters.map((c, ci) => (
                     <li key={ci} className="ml-3">

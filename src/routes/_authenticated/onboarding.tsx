@@ -7,6 +7,9 @@ import { Step2Journey } from "@/components/onboarding/Step2Journey";
 import { Step3Goals } from "@/components/onboarding/Step3Goals";
 import { Step4Timeline } from "@/components/onboarding/Step4Timeline";
 import { Step5Syllabus } from "@/components/onboarding/Step5Syllabus";
+import { Step6Schedule } from "@/components/onboarding/Step6Schedule";
+import { Step7SubjectLevels } from "@/components/onboarding/Step7SubjectLevels";
+import { Step8PreferencesComplete } from "@/components/onboarding/Step8PreferencesComplete";
 import { useOnboardingStore, type SelectedGoal } from "@/lib/onboarding-store";
 import { useAuthStore } from "@/lib/auth-store";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,24 +24,19 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 
 function OnboardingPage() {
   const user = useAuthStore((s) => s.user);
-  const {
-    currentStep,
-    prevStep,
-    hydrate,
-    step4GoalIndex,
-    setStep4GoalIndex,
-  } = useOnboardingStore();
+  const { currentStep, prevStep, hydrate, step4GoalIndex, setStep4GoalIndex } =
+    useOnboardingStore();
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: profile }, { data: goals }] = await Promise.all([
+      const [{ data: profile }, { data: goals }, { data: syllabusRows }] = await Promise.all([
         supabase
           .from("profiles")
           .select(
-            "user_type, grade, college_year, degree, guardian_mode, parent_contact",
+            "user_type, grade, college_year, degree, guardian_mode, parent_contact, language_preference, peak_hours",
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -46,11 +44,13 @@ function OnboardingPage() {
           .from("goals")
           .select("id, goal_type, goal_name, exam_date, exam_year, priority")
           .eq("user_id", user.id),
+        supabase.from("syllabus").select("id").eq("user_id", user.id).limit(1),
       ]);
       if (cancelled) return;
 
       const hasProfile = !!(profile && profile.user_type);
       const hasGoals = !!(goals && goals.length > 0);
+      const hasSyllabus = !!(syllabusRows && syllabusRows.length > 0);
 
       const patch: Parameters<typeof hydrate>[0] = {};
       if (hasProfile) {
@@ -60,6 +60,8 @@ function OnboardingPage() {
         patch.degree = profile!.degree ?? "";
         patch.guardianMode = !!profile!.guardian_mode;
         patch.parentContact = profile!.parent_contact ?? "";
+        patch.languagePreference = profile!.language_preference ?? "english";
+        patch.peakHours = profile!.peak_hours ?? [];
       }
       if (hasGoals) {
         patch.selectedGoals = goals!.map((g) => ({
@@ -77,6 +79,7 @@ function OnboardingPage() {
       let resumeStep = 1;
       if (hasProfile) resumeStep = 2;
       if (hasGoals) resumeStep = 5;
+      if (hasSyllabus) resumeStep = 6;
       patch.currentStep = resumeStep;
 
       hydrate(patch);
@@ -108,13 +111,9 @@ function OnboardingPage() {
             {currentStep === 3 && <Step3Goals />}
             {currentStep === 4 && <Step4Timeline />}
             {currentStep === 5 && <Step5Syllabus />}
-            {currentStep > 5 && (
-              <div className="flex-1 flex items-center justify-center px-4">
-                <p className="font-serif italic text-[#B46A72] text-center">
-                  Step {currentStep} coming soon.
-                </p>
-              </div>
-            )}
+            {currentStep === 6 && <Step6Schedule />}
+            {currentStep === 7 && <Step7SubjectLevels />}
+            {currentStep === 8 && <Step8PreferencesComplete />}
           </>
         ) : (
           <div className="flex-1" />
