@@ -11,6 +11,7 @@ import {
 import { useSessionThreadStore, type SessionThreadMessage } from "@/lib/session-thread-store";
 
 type Task = Awaited<ReturnType<typeof getLearningTask>>;
+const EMPTY_THREAD: SessionThreadMessage[] = [];
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
@@ -75,7 +76,7 @@ function SessionRoute() {
   const [videoChecked, setVideoChecked] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState("");
-  const thread = useSessionThreadStore((state) => state.threads[id] ?? []);
+  const thread = useSessionThreadStore((state) => state.threads[id] ?? EMPTY_THREAD);
   const appendMessage = useSessionThreadStore((state) => state.appendMessage);
 
   const taskQuery = useQuery({
