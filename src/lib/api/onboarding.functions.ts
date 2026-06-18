@@ -205,7 +205,6 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
       supabase: import("@supabase/supabase-js").SupabaseClient;
       userId: string;
     };
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: profile }, { data: goals }, { data: subjects }, { data: syllabus }] =
       await Promise.all([
@@ -291,14 +290,14 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
 
     const today = isoDate(new Date());
     const in30 = isoDate(addDays(new Date(), 29));
-    await supabaseAdmin
+    await supabase
       .from("study_plan")
       .delete()
       .eq("user_id", userId)
       .gte("scheduled_date", today)
       .lte("scheduled_date", in30);
 
-    const { data: inserted, error: insertError } = await supabaseAdmin
+    const { data: inserted, error: insertError } = await supabase
       .from("study_plan")
       .insert(rows)
       .select(
@@ -308,7 +307,7 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
       .limit(60);
     if (insertError) throw insertError;
 
-    const { error: completeError } = await supabaseAdmin
+    const { error: completeError } = await supabase
       .from("users")
       .update({ onboarding_complete: true })
       .eq("id", userId);
