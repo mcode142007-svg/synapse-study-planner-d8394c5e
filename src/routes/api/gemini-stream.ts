@@ -42,13 +42,40 @@ function extractSseText(line: string) {
   }
 }
 
+function getGeminiApiKey() {
+  const key = process.env.GEMINI_API_KEY?.trim();
+  if (!key) return null;
+  return key;
+}
+
 export const Route = createFileRoute("/api/gemini-stream")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.GEMINI_API_KEY;
+        let key: string | null = null;
+        try {
+          key = getGeminiApiKey();
+        } catch (error) {
+          return Response.json(
+            { error: error instanceof Error ? error.message : "Invalid GEMINI_API_KEY" },
+            { status: 500 },
+          );
+        }
         if (!key) {
           return Response.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500 });
+        }
+
+        // Debug: log masked prefix of the key the server is using so we can
+        // verify the correct value is loaded at runtime without leaking secrets.
+        try {
+          // Show only the first 4 characters to help diagnose prefix-based errors
+          // (e.g. whether an OAuth token like "ya29" or an API key like "AQ.").
+          // This is intentionally non-sensitive; do not log the full key.
+          // Remove or silence this in production once debugging is complete.
+          // eslint-disable-next-line no-console
+          console.debug("GEMINI_API_KEY prefix:", key.slice(0, 4));
+        } catch {
+          // ignore logging failures
         }
 
         let body: {
@@ -64,16 +91,18 @@ export const Route = createFileRoute("/api/gemini-stream")({
           return Response.json({ error: "Invalid JSON body" }, { status: 400 });
         }
 
-        const upstream = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${key}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: buildPrompt(body) }] }],
-            }),
-          },
+        const url = new URL(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent",
         );
+        url.searchParams.set("alt", "sse");
+        url.searchParams.set("key", key);
+        const upstream = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: buildPrompt(body) }] }],
+          }),
+        });
 
         if (!upstream.ok || !upstream.body) {
           const errText = await upstream.text().catch(() => "");

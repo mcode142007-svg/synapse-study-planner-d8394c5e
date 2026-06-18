@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AlertTriangle, CalendarClock, CheckCircle2, Flame, Sparkles, X } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Flame, Sparkles, X, CalendarDays } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -155,9 +155,20 @@ function Dashboard() {
             Dashboard
           </h1>
         </div>
-        <div className="flex items-center gap-2 rounded-md border border-[#F7C8D3]/60 bg-white/60 px-3 py-2 text-[#B46A72] shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-[#F7C8D3]">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/timeline" })}
+            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"
+          >
+            <CalendarDays className="h-4 w-4" />
+            Timeline
+          </button>
+
+          <div className="ml-2 flex items-center gap-2 rounded-md border border-[#F7C8D3]/60 bg-white/60 px-3 py-2 text-[#B46A72] shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-[#F7C8D3]">
           <Flame className="h-4 w-4" />
           <span className="text-sm font-semibold">{data?.profile?.streak ?? 0}</span>
+          </div>
         </div>
       </header>
 
@@ -179,7 +190,7 @@ function Dashboard() {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             {[
               "Any new exam dates?",
               "Finished yesterday's tasks?",
@@ -205,12 +216,12 @@ function Dashboard() {
           </h2>
           <CalendarClock className="h-5 w-5 text-[#A8B58A]" />
         </div>
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+        <div className="-mx-4 grid gap-3 px-4 pb-1 md:grid-cols-3">
           {readiness.length ? (
             readiness.map((goal) => (
               <article
                 key={goal.id}
-                className="min-w-44 rounded-lg border border-[#A8B58A]/40 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-white/5"
+                className="w-full rounded-lg border border-[#A8B58A]/40 bg-white/70 p-4 shadow-sm dark:border-white/10 dark:bg-white/5"
               >
                 <p className="line-clamp-1 text-sm font-semibold text-[#2D3A47] dark:text-[#FFF7E6]">
                   {goal.goal_name ?? "Exam"}
@@ -259,7 +270,7 @@ function Dashboard() {
             Today's Tasks
           </h2>
         </div>
-        <div className="space-y-2">
+          <div className="grid gap-4 md:grid-cols-2">
           {dashboardQuery.isLoading ? (
             <div className="rounded-lg border border-[#F7C8D3]/60 bg-white/60 p-4 text-sm text-[#A9B7C6]">
               Loading your plan...
@@ -271,7 +282,7 @@ function Dashboard() {
               Nothing scheduled for today.
             </div>
           )}
-        </div>
+          </div>
       </section>
     </div>
   );

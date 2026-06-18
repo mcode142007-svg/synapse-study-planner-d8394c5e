@@ -8,13 +8,29 @@ import {
   getYoutubeVideo,
   startLearningSession,
 } from "@/lib/api/session.functions";
+import { useAuthStore } from "@/lib/auth-store";
 import { useSessionThreadStore, type SessionThreadMessage } from "@/lib/session-thread-store";
+import { AINotesGenerator } from "@/components/session/AINotesGenerator";
+import { PomodoroTimer } from "@/components/session/PomodoroTimer";
+import ProblemSet from "@/components/session/ProblemSet";
+import { Toaster } from "@/components/ui/sonner";
 
 type Task = Awaited<ReturnType<typeof getLearningTask>>;
 const EMPTY_THREAD: SessionThreadMessage[] = [];
 
 function relationOne<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+}
+
+function replaceLastModelMessage(sessionTaskId: string, content: string) {
+  useSessionThreadStore.setState((state) => {
+    const messages = [...(state.threads[sessionTaskId] ?? [])];
+    const lastIndex = messages.length - 1;
+    if (lastIndex >= 0 && messages[lastIndex]?.role === "model") {
+      messages[lastIndex] = { role: "model", content };
+    }
+    return { threads: { ...state.threads, [sessionTaskId]: messages } };
+  });
 }
 
 function renderMarkdown(text: string) {
@@ -76,6 +92,12 @@ function SessionRoute() {
   const [videoChecked, setVideoChecked] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [draft, setDraft] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
+  const [timerReady, setTimerReady] = useState(false);
+  const [pomodoroComplete, setPomodoroComplete] = useState(false);
+  const [showProblemSet, setShowProblemSet] = useState(false);
+  const authUserId = useAuthStore((state) => state.user?.id ?? "");
   const thread = useSessionThreadStore((state) => state.threads[id] ?? EMPTY_THREAD);
   const appendMessage = useSessionThreadStore((state) => state.appendMessage);
 
@@ -87,6 +109,8 @@ function SessionRoute() {
   const task = taskQuery.data as Task | undefined;
   const subject = relationOne(task?.subjects)?.subject_name ?? "Study";
   const chapter = relationOne(task?.syllabus)?.chapter_name ?? "Chapter";
+  const subjectId = task?.subject_id ?? "";
+  const chapterId = task?.chapter_id ?? "";
   const goal = relationOne(task?.goals);
   const exam = goal?.goal_name ?? "Exam prep";
 
@@ -124,7 +148,10 @@ function SessionRoute() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...context, question, thread: priorThread }),
       });
-      if (!response.ok || !response.body) throw new Error("Explanation stream failed");
+      if (!response.ok || !response.body) {
+        const errorBody = (await response.text().catch(() => "")).trim();
+        throw new Error(errorBody || "Explanation stream failed");
+      }
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let text = "";
@@ -139,6 +166,14 @@ function SessionRoute() {
           return { threads: { ...state.threads, [id]: messages } };
         });
       }
+      setShowNotes(true);
+    } catch (error) {
+      replaceLastModelMessage(
+        id,
+        error instanceof Error
+          ? `I couldn't start the AI explanation: ${error.message}`
+          : "I couldn't start the AI explanation.",
+      );
     } finally {
       setStreaming(false);
     }
@@ -159,6 +194,7 @@ function SessionRoute() {
 
   return (
     <div className="space-y-5 pb-6">
+      <Toaster />
       <header>
         <p className="text-sm italic text-[#B46A72] dark:text-[#F7C8D3]">Learning Session</p>
         <h1 className="font-serif text-4xl font-semibold text-[#2D3A47] dark:text-[#FFF7E6]">
@@ -282,6 +318,62 @@ function SessionRoute() {
             </button>
           </form>
         </section>
+      ) : null}
+
+      {showNotes && authUserId && subjectId && chapterId ? (
+        <AINotesGenerator
+          topic={task?.topic ?? "Revision"}
+          subject={subject}
+          exam={exam}
+          studentLevel={task?.difficulty ?? "medium"}
+          language="English"
+          userId={authUserId}
+          chapterId={chapterId}
+          subjectId={subjectId}
+          onSaved={() => {
+            setShowTimer(true);
+          }}
+        />
+      ) : null}
+
+      {showTimer && task ? (
+        <div className="space-y-4">
+          <PomodoroTimer
+            workMinutes={task?.pomodoro_work_minutes ?? 25}
+            breakMinutes={task?.pomodoro_break_minutes ?? 5}
+            onPhaseComplete={() => setPomodoroComplete(true)}
+            onSkip={() => setPomodoroComplete(true)}
+          />
+          {pomodoroComplete && !showProblemSet && (
+            <button
+              type="button"
+              onClick={() => setShowProblemSet(true)}
+              className="w-full bg-indigo-600 text-white py-4 px-6 rounded-xl font-semibold text-lg mt-4"
+            >
+              Start Problems
+            </button>
+          )}
+
+          {showProblemSet && (
+            <ProblemSet
+              topic={task?.topic ?? "Revision"}
+              subject={subject}
+              chapter={chapter}
+              exam={exam}
+              userType={task?.user_type ?? "Student"}
+              grade={task?.grade ?? 0}
+              aiAssessedLevel={task?.ai_assessed_level ?? "medium"}
+              difficulty={task?.difficulty ?? "medium"}
+              userId={authUserId}
+              sessionId={sessionId ?? ""}
+              subjectId={subjectId}
+              planId={task?.id ?? ""}
+              onComplete={(sessionData) => {
+                setShowProblemSet(false);
+              }}
+            />
+          )}
+        </div>
       ) : null}
     </div>
   );

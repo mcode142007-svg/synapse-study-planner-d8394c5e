@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -23,6 +24,11 @@ import { Route as AuthenticatedAppGoalsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAppDashboardRouteImport } from './routes/_authenticated/_app/dashboard'
 import { Route as AuthenticatedAppSessionIdRouteImport } from './routes/_authenticated/_app/session.$id'
 
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/timeline': typeof TimelineRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/gemini': typeof ApiGeminiRoute
   '/api/gemini-stream': typeof ApiGeminiStreamRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/timeline': typeof TimelineRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/gemini': typeof ApiGeminiRoute
   '/api/gemini-stream': typeof ApiGeminiStreamRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/timeline': typeof TimelineRoute
   '/_authenticated/_app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/gemini': typeof ApiGeminiRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/timeline'
     | '/onboarding'
     | '/api/gemini'
     | '/api/gemini-stream'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/timeline'
     | '/onboarding'
     | '/api/gemini'
     | '/api/gemini-stream'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/timeline'
     | '/_authenticated/_app'
     | '/_authenticated/onboarding'
     | '/api/gemini'
@@ -182,12 +194,20 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  TimelineRoute: typeof TimelineRoute
   ApiGeminiRoute: typeof ApiGeminiRoute
   ApiGeminiStreamRoute: typeof ApiGeminiStreamRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  TimelineRoute: TimelineRoute,
   ApiGeminiRoute: ApiGeminiRoute,
   ApiGeminiStreamRoute: ApiGeminiStreamRoute,
 }

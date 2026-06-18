@@ -14,7 +14,7 @@ function AppLayout() {
   return (
     <div className="relative min-h-screen pb-20">
       <Leaves />
-      <main className="relative z-10 max-w-md mx-auto px-4 pt-6">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-6">
         <Outlet />
       </main>
       <BottomNav />
