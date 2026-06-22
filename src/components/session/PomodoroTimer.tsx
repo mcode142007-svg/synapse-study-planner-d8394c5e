@@ -100,7 +100,7 @@ export function PomodoroTimer({
           />
         </svg>
         <div className="absolute flex flex-col items-center justify-center text-center">
-          <span className="text-sm uppercase tracking-[0.25em] text-[#6B7280]">
+          <span className="text-base uppercase tracking-[0.25em] text-[#6B7280]">
             {phase === "ready" ? "Ready" : phase === "work" ? "Work" : "Break"}
           </span>
           <span className="mt-2 text-4xl font-semibold text-[#111827]">
@@ -112,7 +112,7 @@ export function PomodoroTimer({
       <div className="grid gap-3 sm:grid-cols-2">
         <button
           type="button"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-[#7C3AED] px-4 text-sm font-semibold text-white transition hover:bg-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-[#7C3AED] px-5 text-base font-semibold text-white transition hover:bg-[#6D28D9] disabled:cursor-not-allowed disabled:opacity-60"
           onClick={() => {
             if (phase === "ready") return;
             if (isRunning) {
@@ -126,7 +126,7 @@ export function PomodoroTimer({
         </button>
         <button
           type="button"
-          className="inline-flex h-12 items-center justify-center rounded-full border border-[#D1D5DB] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#F9FAFB]"
+          className="inline-flex h-12 items-center justify-center rounded-full border border-[#D1D5DB] bg-white px-5 text-base font-semibold text-[#111827] transition hover:bg-[#F9FAFB]"
           onClick={() => {
             setIsRunning(false);
           }}
@@ -135,7 +135,7 @@ export function PomodoroTimer({
         </button>
         <button
           type="button"
-          className="inline-flex h-12 items-center justify-center rounded-full border border-[#D1D5DB] bg-white px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#F9FAFB]"
+          className="inline-flex h-12 items-center justify-center rounded-full border border-[#D1D5DB] bg-white px-5 text-base font-semibold text-[#111827] transition hover:bg-[#F9FAFB]"
           onClick={() => {
             setIsRunning(false);
             setPhase("ready");
@@ -147,7 +147,7 @@ export function PomodoroTimer({
         </button>
         <button
           type="button"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-[#F3F4F6] px-4 text-sm font-semibold text-[#111827] transition hover:bg-[#E5E7EB]"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-[#F3F4F6] px-5 text-base font-semibold text-[#111827] transition hover:bg-[#E5E7EB]"
           onClick={() => setShowModal(true)}
         >
           Adjust
@@ -157,7 +157,7 @@ export function PomodoroTimer({
       {showModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-6">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-[#111827]">Adjust timer</h3>
+            <h3 className="text-xl font-semibold text-[#111827]">Adjust timer</h3>
             <div className="mt-4 space-y-4">
               <label className="block text-sm text-[#374151]">
                 Work minutes

@@ -71,12 +71,12 @@ export function AuthCard({ mode }: { mode: Mode }) {
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-10">
       <Leaves />
-      <div className="relative z-10 bg-white/70 dark:bg-white/10 backdrop-blur rounded-2xl shadow-md p-8 max-w-sm w-full border border-[#F7C8D3]/30">
-        <h1 className="text-4xl font-serif font-semibold text-[#2D3A47] text-center">Synapse</h1>
-        <p className="mt-1 text-center font-serif italic text-[#B46A72]">
+      <div className="relative z-10 bg-white/75 dark:bg-white/10 backdrop-blur rounded-2xl shadow-md p-10 max-w-sm w-full border border-[#F7C8D3]/30">
+        <h1 className="text-5xl font-semibold text-[#2D3A47] text-center">Synapse</h1>
+        <p className="mt-1 text-center italic text-[#B46A72] text-base">
           Your intelligent study companion
         </p>
-        <h2 className="mt-6 font-serif text-xl text-[#2D3A47]/90">{heading}</h2>
+        <h2 className="mt-6 text-2xl font-semibold text-[#2D3A47]/90">{heading}</h2>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <input
@@ -85,7 +85,7 @@ export function AuthCard({ mode }: { mode: Mode }) {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-xl py-3 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full font-serif text-[#2D3A47] placeholder:text-[#A9B7C6] focus:outline-none focus:border-[#B46A72]"
+            className="rounded-xl py-4 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full text-[#2D3A47] placeholder:text-[#6B7280] focus:outline-none focus:border-[#B46A72]"
           />
           <input
             type="password"
@@ -94,11 +94,11 @@ export function AuthCard({ mode }: { mode: Mode }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-xl py-3 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full font-serif text-[#2D3A47] placeholder:text-[#A9B7C6] focus:outline-none focus:border-[#B46A72]"
+            className="rounded-xl py-4 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full text-[#2D3A47] placeholder:text-[#6B7280] focus:outline-none focus:border-[#B46A72]"
           />
 
           {error && (
-            <p className="text-sm font-serif italic text-[#B46A72]">{error}</p>
+            <p className="text-base italic text-[#B46A72]">{error}</p>
           )}
 
           <button
@@ -111,18 +111,18 @@ export function AuthCard({ mode }: { mode: Mode }) {
         </form>
 
         <div className="relative my-4 text-center">
-          <span className="font-serif italic text-sm text-[#A9B7C6]">or</span>
+          <span className="italic text-base text-[#6B7280]">or</span>
         </div>
 
         <button
           onClick={handleGoogle}
-          className="border border-[#B46A72] text-[#B46A72] rounded-xl py-3 w-full font-serif font-semibold min-h-[44px] active:scale-95 transition-transform duration-75 flex items-center justify-center gap-2"
+          className="border border-[#B46A72] text-[#B46A72] rounded-xl py-4 w-full font-semibold min-h-[48px] active:scale-95 transition-transform duration-75 flex items-center justify-center gap-2"
         >
           <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#B46A72" d="M21.35 11.1H12v2.92h5.35c-.23 1.5-1.7 4.4-5.35 4.4-3.22 0-5.85-2.67-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.77 1.45l2.57-2.48C16.86 3.99 14.65 3 12 3 6.98 3 3 6.98 3 12s3.98 9 9 9c5.2 0 8.65-3.65 8.65-8.78 0-.59-.07-1.04-.3-1.12Z"/></svg>
           Continue with Google
         </button>
 
-        <p className="mt-5 text-center font-serif italic text-sm text-[#B46A72]">
+        <p className="mt-5 text-center italic text-base text-[#B46A72]">
           {mode === "login" ? (
             <>New here? <Link to="/signup" className="underline">Create an account</Link></>
           ) : (

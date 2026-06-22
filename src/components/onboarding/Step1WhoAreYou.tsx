@@ -101,10 +101,10 @@ export function Step1WhoAreYou() {
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32">
-        <h1 className="font-serif font-semibold text-3xl text-[#2D3A47]">
+        <h1 className="text-4xl font-semibold text-[#2D3A47]">
           Who are you?
         </h1>
-        <p className="mt-1 font-serif italic text-[#B46A72]">
+        <p className="mt-1 italic text-[#B46A72] text-base">
           Help us personalise your experience
         </p>
 
@@ -116,7 +116,7 @@ export function Step1WhoAreYou() {
               onClick={() => selectType(t.id)}
             >
               <span className="text-3xl">{t.icon}</span>
-              <span className="font-serif font-semibold text-[#2D3A47] text-center text-base leading-tight">
+              <span className="font-semibold text-[#2D3A47] text-center text-base leading-tight">
                 {t.label}
               </span>
             </SelectableCard>
@@ -129,7 +129,7 @@ export function Step1WhoAreYou() {
           style={{ maxHeight: userType === "school" ? 600 : 0 }}
         >
           <div className="mt-6">
-            <p className="font-serif text-[#2D3A47] text-lg">
+            <p className="text-[#2D3A47] text-lg">
               Which grade are you in?
             </p>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
@@ -137,7 +137,7 @@ export function Step1WhoAreYou() {
                 <button
                   key={g}
                   onClick={() => setField("grade", g)}
-                  className={`shrink-0 rounded-full px-4 py-2 border font-serif text-sm transition ${
+                  className={`shrink-0 rounded-full px-4 py-2 border text-base transition ${
                     grade === g
                       ? "bg-[#B46A72] text-[#FFF7E6] border-[#B46A72]"
                       : "border-[#F7C8D3] text-[#2D3A47] bg-white/60"
@@ -149,7 +149,7 @@ export function Step1WhoAreYou() {
             </div>
             {grade !== null && grade <= 4 && (
               <div className="mt-4 rounded-2xl border border-[#A8B58A]/40 bg-[#A8B58A]/10 p-4">
-                <p className="font-serif italic text-[#A8B58A]">
+                <p className="italic text-[#A8B58A] text-base">
                   Guardian mode is enabled for your safety 🌿
                 </p>
               </div>
@@ -158,10 +158,10 @@ export function Step1WhoAreYou() {
               <div className="mt-4 rounded-2xl border border-[#F7C8D3]/40 bg-white/70 backdrop-blur p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-serif font-semibold text-[#2D3A47]">
+                    <p className="font-semibold text-[#2D3A47]">
                       Enable Guardian Mode?
                     </p>
-                    <p className="font-serif italic text-sm text-[#A9B7C6] mt-1">
+                      <p className="italic text-base text-[#6B7280] mt-1">
                       A parent or guardian will receive weekly summaries
                     </p>
                   </div>
@@ -189,7 +189,7 @@ export function Step1WhoAreYou() {
                     value={parentContact}
                     onChange={(e) => setField("parentContact", e.target.value)}
                     placeholder="Parent's WhatsApp number or email"
-                    className="mt-3 rounded-xl py-3 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full font-serif"
+                    className="mt-3 rounded-xl py-4 px-4 text-base border border-[#F7C8D3] bg-white/80 w-full"
                   />
                 </div>
               </div>
@@ -202,7 +202,7 @@ export function Step1WhoAreYou() {
           style={{ maxHeight: userType === "college" ? 400 : 0 }}
         >
           <div className="mt-6">
-            <p className="font-serif text-[#2D3A47] text-lg">
+            <p className="text-[#2D3A47] text-lg">
               Which year are you in?
             </p>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
@@ -210,7 +210,7 @@ export function Step1WhoAreYou() {
                 <button
                   key={y}
                   onClick={() => setField("collegeYear", y)}
-                  className={`shrink-0 rounded-full px-4 py-2 border font-serif text-sm transition ${
+                  className={`shrink-0 rounded-full px-4 py-2 border text-base transition ${
                     collegeYear === y
                       ? "bg-[#B46A72] text-[#FFF7E6] border-[#B46A72]"
                       : "border-[#F7C8D3] text-[#2D3A47] bg-white/60"
@@ -220,7 +220,7 @@ export function Step1WhoAreYou() {
                 </button>
               ))}
             </div>
-            <p className="mt-5 font-serif text-[#2D3A47] text-lg">
+            <p className="mt-5 text-[#2D3A47] text-lg">
               What are you studying?
             </p>
             <input

@@ -58,6 +58,7 @@
   --color-misty: var(--misty);
   --color-lagoon: var(--lagoon);
   --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
 :root {
@@ -144,8 +145,10 @@
 
   body {
     background-color: #FFF7E6;
-    color: #2D3A47;
-    font-family: "Cormorant Garamond", Georgia, serif;
+    color: #1F2937;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.65;
     background-image: radial-gradient(ellipse at top left, #f5ede0, #FFF7E6 60%);
     background-attachment: fixed;
     min-height: 100vh;

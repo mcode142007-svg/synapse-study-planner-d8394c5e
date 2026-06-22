@@ -57,15 +57,15 @@ function Timeline() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-8 px-4">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-[#111827] dark:text-white">30-day Timeline</h1>
-          <p className="text-sm text-[#6B7280]">Overview of your scheduled study plan</p>
+          <h1 className="text-4xl font-semibold text-[#111827] dark:text-white">30-day Timeline</h1>
+          <p className="mt-2 text-base text-[#4B5563]">Overview of your scheduled study plan</p>
         </div>
         <button
           type="button"
           onClick={() => navigate({ to: "/_authenticated/_app/dashboard" })}
-          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3 text-base font-semibold text-white"
         >
           <CalendarDays className="h-4 w-4" />
           Dashboard
@@ -83,21 +83,21 @@ function Timeline() {
                   className="flex items-center justify-between rounded-2xl border border-[#E5E7EB] bg-white p-4 dark:border-white/10 dark:bg-slate-900"
                 >
                   <div>
-                    <p className="text-sm text-[#6B7280]">{task.subjects?.subject_name ?? ""}</p>
-                    <p className="mt-1 font-semibold text-[#111827] dark:text-white">{task.topic}</p>
-                    <p className="text-xs text-[#6B7280]">{task.syllabus?.chapter_name ?? ""}</p>
+                    <p className="text-base text-[#4B5563]">{task.subjects?.subject_name ?? ""}</p>
+                    <p className="mt-1 font-semibold text-lg text-[#111827] dark:text-white">{task.topic}</p>
+                    <p className="text-sm text-[#6B7280]">{task.syllabus?.chapter_name ?? ""}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {task.task_type === "revision" ? (
-                      <span className="rounded-full bg-red-100 text-red-700 border border-red-300 px-3 py-1 text-xs font-bold">
+                      <span className="rounded-full bg-red-100 text-red-700 border border-red-300 px-3 py-1 text-sm font-bold">
                         Revision: Poor Score
                       </span>
                     ) : (
-                      <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-semibold text-[#111827]">
+                      <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-sm font-semibold text-[#111827]">
                         {task.task_type}
                       </span>
                     )}
-                    <span className="rounded-full bg-[#EEF2FF] px-3 py-1 text-xs font-semibold text-[#4338CA]">
+                    <span className="rounded-full bg-[#EEF2FF] px-3 py-1 text-sm font-semibold text-[#4338CA]">
                       {task.difficulty}
                     </span>
                   </div>

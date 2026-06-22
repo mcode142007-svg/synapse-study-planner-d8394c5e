@@ -224,7 +224,7 @@ export function Step4Timeline() {
   if (!goal) {
     return (
       <div className="flex-1 flex items-center justify-center px-4">
-        <p className="font-serif italic text-[#B46A72]">No goals to schedule.</p>
+        <p className="italic text-[#B46A72] text-base">No goals to schedule.</p>
       </div>
     );
   }
@@ -232,14 +232,14 @@ export function Step4Timeline() {
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex-1 overflow-y-auto px-4 pt-2 pb-32">
-        <p className="text-xs italic font-serif text-[#A9B7C6]">
+        <p className="text-sm italic text-[#6B7280]">
           Goal {currentNonSkillIndex} of {totalNonSkill}
         </p>
         <h1 className="mt-2 font-serif font-semibold text-3xl text-[#2D3A47]">
           When are you appearing for{" "}
           <span className="italic text-[#B46A72]">{goal.goal_name}</span>?
         </h1>
-        <p className="mt-1 font-serif italic text-[#A9B7C6]">
+        <p className="mt-1 italic text-[#6B7280] text-base">
           This helps us set the right pace
         </p>
 
@@ -268,13 +268,13 @@ export function Step4Timeline() {
 
         {(timeline === "this_year" || timeline === "next_year") && !isAcademic && (
           <div className="mt-5">
-            <p className="font-serif text-[#2D3A47]">Which month?</p>
+            <p className="text-[#2D3A47] text-base">Which month?</p>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
               {MONTHS.map((m, i) => (
                 <button
                   key={m}
                   onClick={() => setMonth(i)}
-                  className={`shrink-0 rounded-full px-4 py-2 border font-serif text-sm transition ${
+                  className={`shrink-0 rounded-full px-4 py-2 border text-base transition ${
                     month === i
                       ? "bg-[#B46A72] text-[#FFF7E6] border-[#B46A72]"
                       : "border-[#F7C8D3] text-[#2D3A47] bg-white/60"
@@ -289,7 +289,7 @@ export function Step4Timeline() {
 
         {timeline === "this_year" && !isAcademic && month !== null && (
           <div className="mt-5">
-            <p className="font-serif text-[#2D3A47]">Do you know the exact date?</p>
+            <p className="text-[#2D3A47] text-base">Do you know the exact date?</p>
             <div className="mt-2 flex gap-2">
               {[
                 { v: true, l: "Yes" },
@@ -298,7 +298,7 @@ export function Step4Timeline() {
                 <button
                   key={o.l}
                   onClick={() => setKnowsDate(o.v)}
-                  className={`rounded-full px-5 py-2 border font-serif text-sm transition ${
+                  className={`rounded-full px-5 py-2 border text-base transition ${
                     knowsDate === o.v
                       ? "bg-[#B46A72] text-[#FFF7E6] border-[#B46A72]"
                       : "border-[#F7C8D3] text-[#2D3A47] bg-white/60"
@@ -320,14 +320,14 @@ export function Step4Timeline() {
         )}
 
         {error && (
-          <p className="mt-4 font-serif italic text-sm text-[#B46A72]">{error}</p>
+          <p className="mt-4 italic text-base text-[#B46A72]">{error}</p>
         )}
       </div>
 
       <button
         disabled={!canContinue || saving}
         onClick={onNext}
-        className={`fixed bottom-6 left-4 right-4 z-20 bg-[#B46A72] text-[#FFF7E6] rounded-xl py-3 font-serif font-semibold text-lg shadow-sm transition ${
+        className={`fixed bottom-6 left-4 right-4 z-20 bg-[#B46A72] text-[#FFF7E6] rounded-xl py-3 font-semibold text-lg shadow-sm transition ${
           !canContinue || saving ? "opacity-50" : ""
         }`}
       >
